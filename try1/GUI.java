@@ -20,7 +20,7 @@ public class GUI extends JFrame {
 		button = new JButton("update time");
 		Date start = new Date(); //Date.setTime
 		//clock.setText(now.toString());
-		clock.setText(String.format("%d:%d %s", start.getHours() % 12, start.getMinutes(), (start.getHours()<12 ? "AM" : "PM")));
+		clock.setText(String.format("%d:%d %s", (start.getHours()==0? 12:start.getHours()%12), start.getMinutes(), (start.getHours()<12 ? "AM" : "PM")));
 		
 		Handler handler = new Handler();
 		button.addActionListener(handler);
@@ -32,7 +32,7 @@ public class GUI extends JFrame {
 	private class Handler implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			now = new Date();
-			clock.setText(String.format("%d:%d %s", now.getHours() % 12, now.getMinutes(), (now.getHours()<12 ? "AM" : "PM")));
+			clock.setText(String.format("%d:%d %s", (now.getHours()==0? 12:now.getHours()%12), now.getMinutes(), (now.getHours()<12 ? "AM" : "PM")));
 		}
 	}
 }
