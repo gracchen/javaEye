@@ -4,7 +4,8 @@ import javax.swing.JFrame;
 
 public class Main {
 	public static void main(String[] args) {
-		GUI window = new GUI();
+		int pollTime = 1 * 1000; //every minute
+		GUI window = new GUI(pollTime);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setSize(275,180);
 		window.setVisible(true);
@@ -12,7 +13,7 @@ public class Main {
 		while(true)
 		{
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(pollTime); 
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

@@ -9,31 +9,29 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 public class GUI extends JFrame {
-	private int workMin, breakSec;
-	private JLabel clock, startText, endText;
+	private int workMin, breakSec, pollTime;
+	private JLabel endText, msg;
 	private JButton button;
-	public LocalDateTime start, alarm;
-	public GUI() {
+	public LocalDateTime now, alarm;
+	public GUI(int pollTime) {
 		super("Eye Saver");
 		setLayout(new FlowLayout()); //default
 		
+		this.pollTime = pollTime / 1000 + 5; //convert to sec with leeway of 5 sec lag
 		workMin = 1; breakSec = 20;
-		clock = new JLabel(); 
-		startText = new JLabel();
+		msg = new JLabel(); 
 		endText = new JLabel();
-		start = LocalDateTime.now(); //Date.setTime
-		alarm = start.plusMinutes(workMin);
+		now = LocalDateTime.now(); //Date.setTime
+		alarm = now.plusMinutes(workMin);
 	
-		clock.setText("current time: " + makeString(start));
-		startText.setText("alarm started on " + makeString(start)); //set start of alarm
-		endText.setText("alarm going off on " + makeString(alarm)); //set start of alarm
+		msg.setText("work!");
+		endText.setText("ALARM @ " + makeString(alarm)); 
 		
-		button = new JButton("update time");
+		button = new JButton("reset alarm");
 		Handler handler = new Handler();
 		button.addActionListener(handler);
 		
-		add(clock);
-		add(startText);
+		add(msg);
 		add(endText);
 		add(button);
 	}
@@ -44,27 +42,48 @@ public class GUI extends JFrame {
 	
 	private class Handler implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			clock.setText("current time: " + makeString(LocalDateTime.now()));
+			alarm = LocalDateTime.now().plusMinutes(workMin);
+			endText.setText("ALARM @ " + makeString(alarm));
 		}
 	}
 	
 	public void update() {
-		clock.setText("current time: " + makeString(LocalDateTime.now()));
-		
-		if (LocalDateTime.now().isAfter(alarm)) //alarm time passed 
+		if (LocalDateTime.now().minusSeconds(pollTime).isBefore(now)) //if within 5 sec of last poll
 		{
-			if (LocalDateTime.now().minusSeconds(5).isBefore(alarm)) //if within 5 sec of alarm time
+			now = LocalDateTime.now();
+			if (LocalDateTime.now().isAfter(alarm)) //alarm time passed 
 			{
-				startText.setText("HOORAYYYY Alarm reached!!!!");
+				hackyToFront();
+				resetAlarm();
+				msg.setText("HOORAYYYY!  now break");
 			}
-			else //computer sleeped, reset alarm
-			{
-				start = LocalDateTime.now();
-				alarm = start.plusMinutes(workMin);
-				startText.setText("alarm started on " + makeString(start)); //set start of alarm
-				endText.setText("UDPATE: alarm on " + makeString(alarm)); //set start of alarm
-			}
+		}
+		else //computer sleeped, reset alarm
+		{
+			resetAlarm();
 		}
 	}
 	
+	private void resetAlarm() {
+		now = LocalDateTime.now();
+		alarm = LocalDateTime.now().plusMinutes(workMin);
+		endText.setText("new ALARM @ " + makeString(alarm));
+	}
+	
+	private void hackyToFront( )
+	{
+		
+        //toFront();
+        setAlwaysOnTop(true);
+        setExtendedState(JFrame.NORMAL);
+        //setVisible(true);
+        try {
+			Thread.sleep(1000*breakSec); 
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		setAlwaysOnTop(false);
+		setExtendedState(JFrame.ICONIFIED);
+		toBack();
+	}
 }
