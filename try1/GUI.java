@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 public class GUI extends JFrame {
+	private static final long serialVersionUID = 1L;
 	private int workMin, breakSec, pollTime;
 	private JLabel endText, msg;
 	private JButton button;
@@ -53,9 +54,10 @@ public class GUI extends JFrame {
 			now = LocalDateTime.now();
 			if (LocalDateTime.now().isAfter(alarm)) //alarm time passed 
 			{
+				msg.setText("HOORAYYYY!  now break");
 				hackyToFront();
 				resetAlarm();
-				msg.setText("HOORAYYYY!  now break");
+				endText.setText("ALARM @ " + makeString(alarm));
 			}
 		}
 		else //computer sleeped, reset alarm
@@ -72,11 +74,8 @@ public class GUI extends JFrame {
 	
 	private void hackyToFront( )
 	{
-		
-        //toFront();
         setAlwaysOnTop(true);
-        setExtendedState(JFrame.NORMAL);
-        //setVisible(true);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         try {
 			Thread.sleep(1000*breakSec); 
 		} catch (InterruptedException e) {
