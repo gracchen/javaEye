@@ -5,6 +5,7 @@ A light desktop app featuring a customizable reminder to relax your eyes every n
 System requisites: At least JRE version 9
 Download prototype.jar and run it.
 
+## Latest updates:
 3/11/2032:
 Automatically adds itself in the system tray if supported. Features a hide button that hides it from the screen and taskbar while still working and showing reminders. Reminders dismiss themselves after 20 seconds. To reopen the app, click on the icon in the system tray. 
 

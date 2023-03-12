@@ -1,8 +1,6 @@
 package try1;
 import java.awt.AWTException;
 import java.awt.FlowLayout;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
@@ -15,6 +13,7 @@ import java.time.LocalDateTime;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 
 public class GUI extends JFrame {
 	private static final long serialVersionUID = 1L;
@@ -24,18 +23,21 @@ public class GUI extends JFrame {
 	public LocalDateTime now, alarm;
 	TrayIcon trayIcon;
 	SystemTray tray;
+	boolean isHidden;
 	
 	public GUI(int pollTime) {
 		super("Eye Saver");
 		setLayout(new FlowLayout()); //default
+		pack();
+		setLocationRelativeTo(null);
 		this.pollTime = pollTime / 1000 + 5; //convert to sec with leeway of 5 sec lag
 		workMin = 1; breakSec = 20;
 		msg = new JLabel(); 
+		msg.setText("HOORAYYYY!  break");
 		endText = new JLabel();
 		now = LocalDateTime.now(); //Date.setTime
 		alarm = now.plusMinutes(workMin);
 
-		msg.setText("work!");
 		endText.setText("ALARM @ " + makeString(alarm)); 
 
 		hide = new JButton("Hide to tray");
@@ -49,29 +51,35 @@ public class GUI extends JFrame {
 		}});
 
 		add(msg);
+		msg.setVisible(false);
 		add(endText);
 		add(reset);
 
 		if(SystemTray.isSupported())
 		{
+			//initialize trayicon, just have to add() it later in handler
 			add(hide);
 			tray = SystemTray.getSystemTray();
 			trayIcon = new TrayIcon(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icon.png")));
 			trayIcon.addMouseListener(new click());
-
-			try {
-				tray.add(trayIcon);
-			} catch (AWTException e1) {
-				e1.printStackTrace();
-			}
+			trayIcon.setToolTip("Right click to exit");
 		}
-
 	}
 	
 	private class click extends MouseAdapter {
 		public void mouseClicked( MouseEvent e) {
-			setVisible(true);
-			setExtendedState(JFrame.NORMAL);
+			if (SwingUtilities.isLeftMouseButton(e)) //bring it back up
+			{
+				isHidden = false;
+				setVisible(true);
+				setExtendedState(JFrame.NORMAL);
+				tray.remove(trayIcon); //remove from sys tray
+			}
+			else if (SwingUtilities.isRightMouseButton(e))
+			{
+				System.exit(0); //die as the tooltip says
+			}
+				
 		}
 	}
 
@@ -81,7 +89,11 @@ public class GUI extends JFrame {
 
 	private class hideHandler implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			dispose();
+			isHidden = true;
+			try {
+				tray.add(trayIcon);
+				dispose(); //alternative to CloseOnOperation(hide on close), use button not close window
+			} catch (AWTException e1) {e1.printStackTrace();}
 		}
 	}
 
@@ -91,26 +103,27 @@ public class GUI extends JFrame {
 			now = LocalDateTime.now();
 			if (LocalDateTime.now().isAfter(alarm)) //alarm time passed 
 			{
+				msg.setVisible(true);
+				reset.setVisible(false);
 				hide.setVisible(false);
-				msg.setText("HOORAYYYY!  now break");
-				endText.setText(""); 
+				endText.setVisible(false);
 				hackyToFront();
 				resetAlarm();
+				endText.setVisible(true);
 				endText.setText("ALARM @ " + makeString(alarm));
-				msg.setText("work!");
+				msg.setVisible(false);
 				hide.setVisible(true);
+				reset.setVisible(true);
 			}
 		}
 		else //computer sleeped, reset alarm
-		{
 			resetAlarm();
-		}
 	}
 
 	private void resetAlarm() {
 		now = LocalDateTime.now();
 		alarm = LocalDateTime.now().plusMinutes(workMin);
-		endText.setText("new ALARM @ " + makeString(alarm));
+		endText.setText("ALARM @ " + makeString(alarm));
 	}
 
 	private void hackyToFront( )
@@ -124,7 +137,8 @@ public class GUI extends JFrame {
 			e.printStackTrace();
 		}
 		setAlwaysOnTop(false);
-		setVisible(false);
+		if (isHidden)
+			setVisible(false);
 		setExtendedState(JFrame.ICONIFIED);
 		toBack();
 	}
