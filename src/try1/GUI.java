@@ -60,7 +60,8 @@ public class GUI extends JFrame {
 			//initialize trayicon, just have to add() it later in handler
 			add(hide);
 			tray = SystemTray.getSystemTray();
-			trayIcon = new TrayIcon(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icon.png")));
+			
+			trayIcon = new TrayIcon(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resources/icon.png")));
 			trayIcon.addMouseListener(new click());
 			trayIcon.setToolTip("Right click to exit");
 		}
