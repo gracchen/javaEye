@@ -4,7 +4,7 @@ import javax.swing.JFrame;
 
 public class Main {
 	public static void main(String[] args) {
-		int pollTime = 1 * 1000; //every minute
+		int pollTime = 1 * 1000; //every second
 		GUI window = new GUI(pollTime);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setSize(275,180);
