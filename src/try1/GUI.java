@@ -34,8 +34,8 @@ public class GUI extends JFrame {
 	GridBagConstraints c;
 	String alarmMsg, breakMsg, workMsg;
 	JTabbedPane tabPane;
-	JPanel home, settings;
-	JLabel tab1, tab2;
+	JPanel home, settings, breakPanel;
+	JLabel tab1, tab2, breakLabel;
 	
 	//settings elements:
 	JLabel workSliderLabel, breakSliderLabel, seeWork, seeBreak;
@@ -54,6 +54,9 @@ public class GUI extends JFrame {
 		workMsg = "Hello :)";
 		
 		home = new JPanel();
+		breakPanel = new JPanel();
+		breakLabel = new JLabel(breakMsg);
+		breakPanel.add(breakLabel);
 		home.setLayout(new GridBagLayout()); //more customizable gui layout
 		msg = new JLabel(workMsg, SwingConstants.CENTER); 
 		now = LocalDateTime.now(); //Date.setTime
@@ -185,20 +188,16 @@ public class GUI extends JFrame {
 		if (LocalDateTime.now().minusSeconds(pollTime).isBefore(now)) //if within 5 sec of last poll
 		{
 			now = LocalDateTime.now();
-			if (LocalDateTime.now().isAfter(alarm)) //alarm time passed 
+			if (LocalDateTime.now().isAfter(alarm)) //alarm time passed, do break message
 			{
-				msg.setText(breakMsg);
-				reset.setVisible(false);
-				hide.setVisible(false);
-				endText.setVisible(false);
+				tabPane.setVisible(false); //instead of change home panel,  hide all panels
+				add(breakPanel);  //and show a new panel (break messages)
 				
 				hackyToFront();
 				resetAlarm();
 				
-				msg.setText(workMsg);
-				reset.setVisible(true);
-				hide.setVisible(true);
-				endText.setVisible(true);
+				tabPane.setVisible(true);
+				remove(breakPanel);
 			}
 		}
 		else //computer sleeped, reset alarm
