@@ -7,7 +7,7 @@ Download prototype.jar and run it.
 
 ## Latest updates:
 3/11/2032:
-Automatically adds itself in the system tray if supported. Features a hide button that hides it from the screen and taskbar while still working and showing reminders. Reminders dismiss themselves after 20 seconds. To reopen the app, click on the icon in the system tray. 
+Adds itself in the system tray on button click. This hides it from the screen and taskbar while still working and showing reminders. Reminders dismiss themselves after 20 seconds. To reopen the app, click on the icon in the system tray. 
 
 3/10/2023:
 Release prototype 1 for JDK 19, 20 minute worktime + 20 second break.
@@ -22,3 +22,9 @@ if not, computer slept through it and reset alarm.
 3/8/2023: 
 Simply displays time when opened + button.
 If you click the button, the time updates to current time. 
+
+## Others' Code Snippets used:
+for hackyToFront(): 
+https://stackoverflow.com/questions/34637597/bring-jframe-window-to-the-front
+for initializing and adding system tray icon:
+https://www.youtube.com/watch?v=NZ_fhAIOxfI
