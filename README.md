@@ -6,7 +6,16 @@ System requisites: At least JRE version 9
 Download prototype.jar and run it.
 
 ## Latest updates:
-#### 3/12/2032:
+#### 3/13/2023:
+Update default window icon to match system tray icon. Allows user to pick a file on computer as new icon for both window and tray, and has no effect if picked nonimage file. 
+- JFileChooser
+     - jfc.showDialog(null, "Select new icon") will popup new picker window
+          - return val == JFileChooser.APPROVE_OPTION if user picked file
+     - jfc.getSelectedFile().getAbsolutePath())
+- ImageIO.read(new File(string abs path);
+- setIconImage(); to set window icon
+
+#### 3/12/2023:
 Formatting using GridBagLayout() instead of default FlowLayout(). Separates break, home, and settings pages into separate JPanels. Adds settings tab with two sliders that preview and adjust duration of work and break cycles. 
 - GridBagConstraints
      - .WEST, .HORIZONTAL, .NONE, etc.
@@ -21,7 +30,7 @@ Formatting using GridBagLayout() instead of default FlowLayout(). Separates brea
 - SwingConstants.CENTER, .SOUTH, etc. for JLabel
 
 
-#### 3/11/2032:
+#### 3/11/2023:
 Adds itself in the system tray on button click. This hides it from the screen and taskbar while still working and showing reminders. Reminders dismiss themselves after 20 seconds. To reopen the app, click on the icon in the system tray. 
 - System.exit(0);
 - dispose();  //hides window entirely
