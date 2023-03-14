@@ -2,6 +2,7 @@ package try1;
 import java.awt.AWTException;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
@@ -10,9 +11,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,8 +43,11 @@ public class GUI extends JFrame {
 	JLabel tab1, tab2, breakLabel;
 	
 	//settings elements:
-	JLabel workSliderLabel, breakSliderLabel, seeWork, seeBreak;
+	JLabel workSliderLabel, breakSliderLabel, seeWork, seeBreak, seeIconName;
 	JSlider sliderWork, sliderBreak;
+	JButton pickIcon;
+	JFileChooser jfc;
+	Image iconImage;
 	
 	boolean isHidden;
 	
@@ -53,6 +61,9 @@ public class GUI extends JFrame {
 		breakMsg = "HOORAY!! Break!";
 		workMsg = "Hello :)";
 		
+		iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resources/icon.png"));
+
+		setIconImage(iconImage); //sets window itself also same icon as sys tray
 		home = new JPanel();
 		breakPanel = new JPanel();
 		breakLabel = new JLabel(breakMsg);
@@ -91,7 +102,7 @@ public class GUI extends JFrame {
 			c.gridx = 1; c.gridy = 2;  //put in same row as other button
 			home.add(hide, c);
 			tray = SystemTray.getSystemTray();
-			trayIcon = new TrayIcon(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resources/icon.png")));
+			trayIcon = new TrayIcon(iconImage);
 			trayIcon.addMouseListener(new click());
 			trayIcon.setToolTip("Right click to exit"); //appear on hovering icon
 		}
@@ -103,7 +114,7 @@ public class GUI extends JFrame {
 		//work duration setting:
 		workSliderLabel = new JLabel("Work duration (min):", SwingConstants.LEFT);
 		c.insets = new Insets(1,1,1,1); //less padding than in home
-		c.gridwidth = 2; c.gridx = 0; c.gridy = 0;
+		c.gridwidth = 5; c.gridx = 0; c.gridy = 0;
 		c.anchor = GridBagConstraints.WEST;  //align setting label to left
 		settings.add(workSliderLabel, c);
 		seeWork = new JLabel(String.valueOf(workMin), SwingConstants.LEFT);
@@ -118,15 +129,14 @@ public class GUI extends JFrame {
 				}
 		);
 		c.anchor = GridBagConstraints.CENTER;  //center slider
-		c.gridwidth = 1; c.gridx = 0; c.gridy = 1;
+		c.gridwidth = 4; c.gridx = 0; c.gridy = 1;
 		settings.add(sliderWork,c);
-		c.gridwidth = 1; c.gridx = 1; c.gridy = 1;
+		c.gridwidth = 1; c.gridx = 4; c.gridy = 1;
 		settings.add(seeWork, c);
-		
 		
 		//break duration setting:
 		breakSliderLabel = new JLabel("Break duration (sec):", SwingConstants.LEFT);
-		c.gridwidth = 2; c.gridx = 0; c.gridy = 2;
+		c.gridwidth = 5; c.gridx = 0; c.gridy = 2;
 		c.anchor = GridBagConstraints.WEST;
 		settings.add(breakSliderLabel, c);
 		seeBreak = new JLabel(String.valueOf(breakSec), SwingConstants.LEFT);
@@ -141,10 +151,36 @@ public class GUI extends JFrame {
 				}
 		);
 		c.anchor = GridBagConstraints.CENTER;
-		c.gridwidth = 1; c.gridx = 0; c.gridy = 3;
+		c.gridwidth = 4; c.gridx = 0; c.gridy = 3;
 		settings.add(sliderBreak,c);
-		c.gridwidth = 1; c.gridx = 1; c.gridy = 3;
+		c.gridwidth = 1; c.gridx = 4; c.gridy = 3;
 		settings.add(seeBreak, c);
+		
+		//customize icon
+		jfc = new JFileChooser(); 
+		seeIconName = new JLabel("default icon");
+		pickIcon = new JButton("Choose icon");
+		pickIcon.addActionListener(
+			new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if (jfc.showDialog(null, "Select new icon") == JFileChooser.APPROVE_OPTION) //to show popup
+					{
+						try {
+							iconImage = ImageIO.read(new File(jfc.getSelectedFile().getAbsolutePath()));
+							trayIcon.setImage(iconImage);   //update both tray and 
+							setIconImage(iconImage);		//window icon to selected file
+							seeIconName.setText(jfc.getSelectedFile().getName());
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+		);
+		c.gridwidth = 1; c.gridx = 0; c.gridy = 4;
+		settings.add(pickIcon, c);
+		c.gridwidth = 4; c.gridx = 1; c.gridy = 4;
+		settings.add(seeIconName,c);
 		
 		//tabs
 		tabPane = new JTabbedPane();
