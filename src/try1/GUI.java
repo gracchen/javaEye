@@ -12,8 +12,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Formatter;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -27,6 +30,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class GUI extends JFrame {
 	private static final long serialVersionUID = 1L;
@@ -37,17 +41,17 @@ public class GUI extends JFrame {
 	TrayIcon trayIcon;
 	SystemTray tray;
 	GridBagConstraints c;
-	String alarmMsg, breakMsg, workMsg;
+	String alarmMsg, breakMsg, workMsg, buf, iconURL;
 	JTabbedPane tabPane;
 	JPanel home, settings, breakPanel;
 	JLabel tab1, tab2, breakLabel;
-	
+	File x;
 	//settings elements:
 	JLabel workSliderLabel, breakSliderLabel, seeWork, seeBreak, seeIconName;
 	JSlider sliderWork, sliderBreak;
 	JButton pickIcon;
 	JFileChooser jfc;
-	Image iconImage;
+	Image iconImage, defaultImage;
 	
 	boolean isHidden;
 	
@@ -56,14 +60,20 @@ public class GUI extends JFrame {
 		pack();
 		setLocationRelativeTo(null);
 		this.pollTime = pollTime / 1000 + 5; //convert to sec with leeway of 5 sec lag
-		workMin = 20; breakSec = 20;
+		x = new File("settings.txt");
 		alarmMsg = "ALARM: ";
 		breakMsg = "HOORAY!! Break!";
 		workMsg = "Hello :)";
+		iconURL = "/resources/icon.png";
+		defaultImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resources/icon.png"));
 		
-		iconImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resources/icon.png"));
-
-		setIconImage(iconImage); //sets window itself also same icon as sys tray
+		if (readSettings() == false) //failed, set defaults
+		{
+			System.out.println("read settings failed");
+			workMin = 20; breakSec = 20;
+			iconURL = "/resources/icon.png";
+		}
+		
 		home = new JPanel();
 		breakPanel = new JPanel();
 		breakLabel = new JLabel(breakMsg);
@@ -96,16 +106,19 @@ public class GUI extends JFrame {
 		c.gridwidth = 1; c.gridx = 0; c.gridy = 2;
 		c.fill = GridBagConstraints.NONE; 	//keep buttons small
 		home.add(reset, c);
-
+		
 		if(SystemTray.isSupported())
 		{
 			c.gridx = 1; c.gridy = 2;  //put in same row as other button
 			home.add(hide, c);
 			tray = SystemTray.getSystemTray();
-			trayIcon = new TrayIcon(iconImage);
+			trayIcon = new TrayIcon(defaultImage);
 			trayIcon.addMouseListener(new click());
 			trayIcon.setToolTip("Right click to exit"); //appear on hovering icon
 		}
+		seeIconName = new JLabel();
+		
+		setWinIcon();
 		
 		//Now setting window:
 		settings = new JPanel();
@@ -158,21 +171,19 @@ public class GUI extends JFrame {
 		
 		//customize icon
 		jfc = new JFileChooser(); 
-		seeIconName = new JLabel("default icon");
+		jfc.setAcceptAllFileFilterUsed(false); //disable default anything filter
+		jfc.addChoosableFileFilter(new FileNameExtensionFilter("png", "jpg", "Images", "gif", "bmp")); //ONLY images
+		//seeIconName = new JLabel("default icon");
 		pickIcon = new JButton("Choose icon");
 		pickIcon.addActionListener(
 			new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					if (jfc.showDialog(null, "Select new icon") == JFileChooser.APPROVE_OPTION) //to show popup
 					{
-						try {
-							iconImage = ImageIO.read(new File(jfc.getSelectedFile().getAbsolutePath()));
-							trayIcon.setImage(iconImage);   //update both tray and 
-							setIconImage(iconImage);		//window icon to selected file
-							seeIconName.setText(jfc.getSelectedFile().getName());
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
+						iconURL = jfc.getSelectedFile().getAbsolutePath();
+						setWinIcon();
+						updateSettings(0, iconURL);
+						System.out.println(iconURL);
 					}
 				}
 			}
@@ -187,6 +198,86 @@ public class GUI extends JFrame {
 		tabPane.addTab("Home", home);
 		tabPane.addTab("Settings", settings);
 		add(tabPane);
+		
+	}
+	
+	private boolean readSettings() { //returns false if error
+		Scanner getX = null;
+		try {
+			getX = new Scanner(x);
+		} catch (FileNotFoundException e1) { e1.printStackTrace(); }
+		if (getX != null)
+		{
+			//icon path
+			getX.hasNext(); buf = getX.nextLine();
+			iconURL = buf.substring(buf.indexOf('=')+1, buf.length());
+			System.out.println(iconURL);
+			
+			//work duration
+			getX.hasNext(); buf = getX.nextLine();
+			System.out.println(buf.substring(buf.indexOf('=')+1, buf.length()));
+			workMin = Integer.valueOf(buf.substring(buf.indexOf('=')+1, buf.length()));
+			System.out.println(workMin);
+			
+			//break duration
+			getX.hasNext(); buf = getX.nextLine();
+			breakSec = Integer.valueOf(buf.substring(buf.indexOf('=')+1, buf.length()));
+			System.out.println(breakSec);	
+			
+			getX.close();
+			return true;
+		}
+		return false;
+	}
+	
+	private void updateSettings(int row, String newValue) {
+		Scanner getX = null;
+		try {
+			getX = new Scanner(x);
+		} catch (FileNotFoundException e1) { e1.printStackTrace(); }
+		if (getX != null)
+		{
+			Formatter y = null;
+			if (row == 0)
+			{
+				try {
+					y = new Formatter("~settings.txt");
+					System.out.println("You created a file");
+				} catch (FileNotFoundException e1) { e1.printStackTrace(); }
+				if (y != null)
+				{
+					getX.nextLine();
+					y.format("iconURL=%s\n", iconURL); //update icon path
+					y.format("%s\n", getX.nextLine()); //copy work time
+					y.format("%s\n", getX.nextLine()); //copy break time
+					y.close();
+					getX.close();
+
+					x.delete();
+
+					if (x.exists()) System.out.println("bollocks");
+					File edit = new File ("~settings.txt");
+					edit.renameTo(x);
+					x = new File ("settings.txt");
+				}
+			}	
+		}
+	}
+	private void setWinIcon() {
+		if (iconURL.equals("/resources/icon.png")) //if default
+		{
+			iconImage = defaultImage;
+			seeIconName.setText("default bell");  //update 
+		}
+		else
+		{
+			try {
+				iconImage = ImageIO.read(new File(iconURL));
+			} catch (IOException e1) { e1.printStackTrace(); }
+			seeIconName.setText(new File(iconURL).getName());  //update 
+		}
+		setIconImage(iconImage);		//window icon to selected file
+		trayIcon.setImage(iconImage); //set tray icon
 	}
 	
 	private class click extends MouseAdapter {
