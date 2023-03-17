@@ -1,7 +1,5 @@
 package try1;
 
-import java.io.File;
-
 import javax.swing.JFrame;
 
 public class Main {
@@ -17,8 +15,6 @@ public class Main {
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setSize(300,220);
 		window.setVisible(true);
-		
-
 		
 		while(true)
 		{

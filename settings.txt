@@ -1,3 +1,3 @@
-iconURL=/resources/icon.png
+iconURL=C:\Users\thankYouGod\Documents\wordly wise\aaaa.png
 workTime=20
 breakTime=20

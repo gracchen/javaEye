@@ -1,3 +1,0 @@
-iconURL=/resources/icon.png
-workTime=20
-breakTime=20

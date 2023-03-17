@@ -1,5 +1,6 @@
 package try1;
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -172,7 +173,7 @@ public class GUI extends JFrame {
 		//customize icon
 		jfc = new JFileChooser(); 
 		jfc.setAcceptAllFileFilterUsed(false); //disable default anything filter
-		jfc.addChoosableFileFilter(new FileNameExtensionFilter("png", "jpg", "Images", "gif", "bmp")); //ONLY images
+		jfc.addChoosableFileFilter(new FileNameExtensionFilter("Images", ImageIO.getReaderFileSuffixes())); //ONLY images
 		//seeIconName = new JLabel("default icon");
 		pickIcon = new JButton("Choose icon");
 		pickIcon.addActionListener(
@@ -272,9 +273,17 @@ public class GUI extends JFrame {
 		else
 		{
 			try {
-				iconImage = ImageIO.read(new File(iconURL));
-			} catch (IOException e1) { e1.printStackTrace(); }
-			seeIconName.setText(new File(iconURL).getName());  //update 
+				iconImage = ImageIO.read(new File(iconURL)); //upon user reselecting, clear error msg.
+				msg.setText(workMsg);
+				msg.setForeground(Color.black);
+				seeIconName.setText(new File(iconURL).getName());  //update 
+			} catch (IOException e1) { 
+				iconImage = defaultImage; //if fails to load settings' picture, notify user & load default bell
+				msg.setText(new File(iconURL).getName() + " not found");
+				msg.setForeground(Color.red);
+				seeIconName.setText("default bell");
+			}
+			
 		}
 		setIconImage(iconImage);		//window icon to selected file
 		trayIcon.setImage(iconImage); //set tray icon
