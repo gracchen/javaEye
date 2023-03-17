@@ -6,6 +6,39 @@ System requisites: At least JRE version 9
 Download prototype.jar and run it.
 
 ## Latest updates:
+#### 3/16/2023:
+Saves user chosen settings in settings.txt upon user choosing icon file or user mouse released on one of the duration sliders. Added code to deal with some unexpected edge cases (user chosen image moved, settings.txt not found, extra long filename, out of bounds time settings)
+- JFileChooser filter incorrectly set up, should be:
+     - new FileNameExtensionFilter("Images", ImageIO.getReaderFileSuffixes())
+- JSlider: slider.getValueIsAdjusting() check if user actively dragging slider
+- Integer.valueOf()  exception if string not integer,  -->  surround try-catch
+
+#### 3/14/2023:
+Saves user chosen settings in settings.txt upon user choosing icon file.
+- "editing" file:
+     1. create new file ~settings.txt (cs 111 if exists already? temp file? pipe? rename as timestamp of user? possible issues here
+     2. write to new file (editing $$$$ ?  just want add one line, costly?)
+     3. CLOSE THE FILE    cannot delete/rename  without close.....like C++
+     4. delete original
+     5. rename new as original
+     6. update original file var = new File(original);
+- File x = new File("settings.txt");
+     - x.delete();  
+     - y.renameTo(x);
+- Scanner (to read file)
+     - new Scanner(File)   --> surround try catch
+     - .nextLine()   vs    .next()     vs    .hasNext()
+- Formatter (to write to file)
+     - new Formatter(newFilename)
+     - .format(%s\n", str); to write to file
+     - .close()  !!!!ESSENTIAL TO LATER MODIFY FILE (much hours wasted)
+- Image from File (not path)
+     - ImageIO.read(file); 
+- Strings
+     - Integer.valueOf()  string->integer
+     - String.valueOf()   int -> string
+     - buf.indexOf('c') or buf.indexOf("str")   good deliminator
+
 #### 3/13/2023:
 Update default window icon to match system tray icon. Allows user to pick a file on computer as new icon for both window and tray, and has no effect if picked nonimage file. 
 - JFileChooser

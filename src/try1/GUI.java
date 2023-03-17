@@ -270,14 +270,16 @@ public class GUI extends JFrame {
 		else
 		{
 			try {
-				iconImage = ImageIO.read(new File(iconURL)); //upon user reselecting, clear er
+				iconImage = ImageIO.read(new File(iconURL)); //upon user reselecting, clear error
 				msg.setText(workMsg);
 				msg.setForeground(Color.black);
+				msg.setToolTipText(null);
 				seeIconName.setText(trunc(new File(iconURL).getName()));  //update 
 				seeIconName.setToolTipText(iconURL);
 			} catch (IOException e1) { 
 				iconImage = defaultImage; //if fails to load settings' picture, notify user & load default bell
-				msg.setText(new File(iconURL).getName() + " not found");
+				msg.setText(trunc(new File(iconURL).getName()) + " not found");
+				msg.setToolTipText(iconURL);
 				msg.setForeground(Color.red);
 				seeIconName.setText("default bell");
 				seeIconName.setToolTipText(null);
