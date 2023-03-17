@@ -53,7 +53,7 @@ public class GUI extends JFrame {
 	JButton pickIcon;
 	JFileChooser jfc;
 	Image iconImage, defaultImage;
-	
+	int maxImageTrunc;
 	boolean isHidden;
 	
 	public GUI(int pollTime) {
@@ -67,10 +67,10 @@ public class GUI extends JFrame {
 		workMsg = "Hello :)";
 		iconURL = "/resources/icon.png";
 		defaultImage = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resources/icon.png"));
-		
+		maxImageTrunc = 12; //truncate to max 12 char length (including "...")
 		if (readSettings() == false) //failed, set defaults
 		{
-			System.out.println("read settings failed");
+			System.out.println("read settings failed, loading default settings");
 			workMin = 20; breakSec = 20;
 			iconURL = "/resources/icon.png";
 		}
@@ -139,6 +139,8 @@ public class GUI extends JFrame {
 					public void stateChanged(ChangeEvent e) {
 						workMin = sliderWork.getValue();   //set value
 						seeWork.setText(String.valueOf(workMin));  //show curr value
+						if (!sliderWork.getValueIsAdjusting()) //don't try updating settings while mouse dragging
+							updateSettings();
 					}
 				}
 		);
@@ -161,6 +163,8 @@ public class GUI extends JFrame {
 					public void stateChanged(ChangeEvent e) {
 						breakSec = sliderBreak.getValue();
 						seeBreak.setText(String.valueOf(breakSec));
+						if (!sliderBreak.getValueIsAdjusting()) //don't try updating settings while mouse dragging
+							updateSettings();
 					}
 				}
 		);
@@ -175,7 +179,7 @@ public class GUI extends JFrame {
 		jfc.setAcceptAllFileFilterUsed(false); //disable default anything filter
 		jfc.addChoosableFileFilter(new FileNameExtensionFilter("Images", ImageIO.getReaderFileSuffixes())); //ONLY images
 		//seeIconName = new JLabel("default icon");
-		pickIcon = new JButton("Choose icon");
+		pickIcon = new JButton("Choose file");
 		pickIcon.addActionListener(
 			new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -183,8 +187,8 @@ public class GUI extends JFrame {
 					{
 						iconURL = jfc.getSelectedFile().getAbsolutePath();
 						setWinIcon();
-						updateSettings(0, iconURL);
-						System.out.println(iconURL);
+						updateSettings();
+						//System.out.println(iconURL);
 					}
 				}
 			}
@@ -210,20 +214,25 @@ public class GUI extends JFrame {
 		if (getX != null)
 		{
 			//icon path
-			getX.hasNext(); buf = getX.nextLine();
-			iconURL = buf.substring(buf.indexOf('=')+1, buf.length());
-			System.out.println(iconURL);
+			iconURL = getX.nextLine();
+
+			//work time
+			try { 
+				workMin = Integer.valueOf(getX.nextLine());
+				if (workMin < 1) workMin = 1;
+				else if (workMin > 60) workMin = 60;
+			} catch (Exception e) {
+				workMin = 20;
+			}
 			
-			//work duration
-			getX.hasNext(); buf = getX.nextLine();
-			System.out.println(buf.substring(buf.indexOf('=')+1, buf.length()));
-			workMin = Integer.valueOf(buf.substring(buf.indexOf('=')+1, buf.length()));
-			System.out.println(workMin);
-			
-			//break duration
-			getX.hasNext(); buf = getX.nextLine();
-			breakSec = Integer.valueOf(buf.substring(buf.indexOf('=')+1, buf.length()));
-			System.out.println(breakSec);	
+			//break time
+			try { 
+				breakSec = Integer.valueOf(getX.nextLine());
+				if (breakSec < 1) breakSec = 1;
+				if (breakSec > 60) breakSec = 60;
+			} catch (Exception e) {
+				breakSec = 20;
+			}
 			
 			getX.close();
 			return true;
@@ -231,62 +240,61 @@ public class GUI extends JFrame {
 		return false;
 	}
 	
-	private void updateSettings(int row, String newValue) {
-		Scanner getX = null;
+	private void updateSettings() {
+		Formatter y = null;
 		try {
-			getX = new Scanner(x);
+			y = new Formatter("~settings.txt");
+			//System.out.println("You created a file");
 		} catch (FileNotFoundException e1) { e1.printStackTrace(); }
-		if (getX != null)
+		if (y != null)
 		{
-			Formatter y = null;
-			if (row == 0)
-			{
-				try {
-					y = new Formatter("~settings.txt");
-					System.out.println("You created a file");
-				} catch (FileNotFoundException e1) { e1.printStackTrace(); }
-				if (y != null)
-				{
-					getX.nextLine();
-					y.format("iconURL=%s\n", iconURL); //update icon path
-					y.format("%s\n", getX.nextLine()); //copy work time
-					y.format("%s\n", getX.nextLine()); //copy break time
-					y.close();
-					getX.close();
+			y.format("%s\n%d\n%d\n", iconURL, workMin, breakSec); //update icon path
+			y.close();
+			
+			x.delete();
 
-					x.delete();
-
-					if (x.exists()) System.out.println("bollocks");
-					File edit = new File ("~settings.txt");
-					edit.renameTo(x);
-					x = new File ("settings.txt");
-				}
-			}	
+			if (x.exists()) System.out.println("unable to edit settings.txt");
+			File edit = new File ("~settings.txt");
+			edit.renameTo(x);
+			x = new File ("settings.txt");
 		}
 	}
+	
 	private void setWinIcon() {
 		if (iconURL.equals("/resources/icon.png")) //if default
 		{
 			iconImage = defaultImage;
 			seeIconName.setText("default bell");  //update 
+			seeIconName.setToolTipText(null);
 		}
 		else
 		{
 			try {
-				iconImage = ImageIO.read(new File(iconURL)); //upon user reselecting, clear error msg.
+				iconImage = ImageIO.read(new File(iconURL)); //upon user reselecting, clear er
 				msg.setText(workMsg);
 				msg.setForeground(Color.black);
-				seeIconName.setText(new File(iconURL).getName());  //update 
+				seeIconName.setText(trunc(new File(iconURL).getName()));  //update 
+				seeIconName.setToolTipText(iconURL);
 			} catch (IOException e1) { 
 				iconImage = defaultImage; //if fails to load settings' picture, notify user & load default bell
 				msg.setText(new File(iconURL).getName() + " not found");
 				msg.setForeground(Color.red);
 				seeIconName.setText("default bell");
+				seeIconName.setToolTipText(null);
 			}
 			
 		}
 		setIconImage(iconImage);		//window icon to selected file
 		trayIcon.setImage(iconImage); //set tray icon
+	}
+	
+	private String trunc(String s) {
+		if (s.length() > maxImageTrunc)
+		{
+			s = s.substring(0, maxImageTrunc);
+			s += "...";
+		}
+		return s;
 	}
 	
 	private class click extends MouseAdapter {
