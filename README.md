@@ -6,6 +6,12 @@ System requisites: At least JRE version 9
 Download prototype.jar and run it.
 
 ## Latest updates:
+#### 3/17/2023: 
+Adds exception possibility if ImageIO.read() failed BUT File(path) did not -  when iconURL path in settings points to vaild file but not an image.
+- in try { }:  if (bad condition) throw new NullPointerException();  //or IOException or ArrayIndexOutofBound or IllegalArgumentException,etc.etc.
+- catch (Exception e)  will catch all exceptions
+     - then to check what kind: if (e instanceof IOException) { }
+
 #### 3/16/2023:
 Saves user chosen settings in settings.txt upon user choosing icon file or user mouse released on one of the duration sliders. Added code to deal with some unexpected edge cases (user chosen image moved, settings.txt not found, extra long filename, out of bounds time settings)
 - JFileChooser filter incorrectly set up, should be:
