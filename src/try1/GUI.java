@@ -271,20 +271,24 @@ public class GUI extends JFrame {
 		{
 			try {
 				iconImage = ImageIO.read(new File(iconURL)); //upon user reselecting, clear error
+				if (iconImage == null) throw new NullPointerException();
 				msg.setText(workMsg);
 				msg.setForeground(Color.black);
 				msg.setToolTipText(null);
 				seeIconName.setText(trunc(new File(iconURL).getName()));  //update 
 				seeIconName.setToolTipText(iconURL);
-			} catch (IOException e1) { 
+			} catch (Exception e) { 
 				iconImage = defaultImage; //if fails to load settings' picture, notify user & load default bell
-				msg.setText(trunc(new File(iconURL).getName()) + " not found");
+				if (e instanceof IOException)
+					msg.setText(trunc(new File(iconURL).getName()) + " not found");
+				else
+					msg.setText(trunc(new File(iconURL).getName()) + " not image");
+				
 				msg.setToolTipText(iconURL);
 				msg.setForeground(Color.red);
 				seeIconName.setText("default bell");
 				seeIconName.setToolTipText(null);
 			}
-			
 		}
 		setIconImage(iconImage);		//window icon to selected file
 		trayIcon.setImage(iconImage); //set tray icon
